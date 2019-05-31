@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from "urql";
+import { useQuery, useMutation } from "urql";
 
 const BOOKS_QUERY = `
 query {
@@ -17,8 +17,18 @@ query {
 }
 `;
 
+const LIKE_BOOK = `
+mutation LikeBook($id: Int!) {
+  likeBook(input: { id: $id }) {
+    success
+  }
+}
+`;
+
 function App() {
   const [{ fetching, error, data }] = useQuery({ query: BOOKS_QUERY });
+  const [, likeBook] = useMutation(LIKE_BOOK);
+
   if (fetching || !data) {
     return <div>Carregando</div>;
   }
@@ -51,7 +61,9 @@ function App() {
               <td>{b.year}</td>
               <td>{b.rating}</td>
               <td>{b.likes}</td>
-              <td />
+              <td>
+                <button onClick={() => likeBook({ id: b.id })}>Curtir</button>
+              </td>
             </tr>
           ))}
         </tbody>
