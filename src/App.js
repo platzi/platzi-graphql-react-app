@@ -53,12 +53,11 @@ function App() {
     }
     return updatedBook.likes;
   };
-
-  if (fetching || !data) {
-    return <div>Carregando</div>;
-  }
   if (error) {
     return <div>Erro</div>;
+  }
+  if (fetching || !data) {
+    return <div>Carregando</div>;
   }
   return (
     <div>
