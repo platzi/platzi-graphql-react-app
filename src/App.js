@@ -1,5 +1,5 @@
-import React from "react";
-import { useQuery, useMutation } from "urql";
+import React, { useState } from "react";
+import { useQuery, useMutation, useSubscription } from "urql";
 
 const BOOKS_QUERY = `
 query {
@@ -25,9 +25,34 @@ mutation LikeBook($id: Int!) {
 }
 `;
 
+const BOOK_SUBSCRIPTION = `
+subscription {
+  bookChanged {
+    id
+    title
+    likes
+  }
+}
+`;
+
 function App() {
+  const [updatedBooks, setUpdatedBooks] = useState({});
   const [{ fetching, error, data }] = useQuery({ query: BOOKS_QUERY });
   const [, likeBook] = useMutation(LIKE_BOOK);
+  useSubscription({ query: BOOK_SUBSCRIPTION }, (_, evt) => {
+    setUpdatedBooks({
+      ...updatedBooks,
+      [evt.bookChanged.id]: evt.bookChanged
+    });
+  });
+
+  const getCurrentLikes = book => {
+    const updatedBook = updatedBooks[book.id];
+    if (!updatedBook) {
+      return book.likes;
+    }
+    return updatedBook.likes;
+  };
 
   if (fetching || !data) {
     return <div>Carregando</div>;
@@ -60,7 +85,7 @@ function App() {
               <td>{b.title}</td>
               <td>{b.year}</td>
               <td>{b.rating}</td>
-              <td>{b.likes}</td>
+              <td>{getCurrentLikes(b)}</td>
               <td>
                 <button onClick={() => likeBook({ id: b.id })}>Curtir</button>
               </td>
